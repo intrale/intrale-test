@@ -19,6 +19,8 @@ public abstract class Test <PROV>{
 
 	   public static final String DUMMY_VALUE = "DUMMY";
 	   public static final String DUMMY_EMAIL = "DUMMY@DUMMY.COM";
+	   public static final String DUMMY_PASS = "123#abCD";
+	   public static final String DUMMY_PASS_2 = "456#efGH";
 	   
 	   private final Class<Request> providerType = (Class<Request>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 	

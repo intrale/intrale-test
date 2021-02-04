@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ar.com.intrale.cloud</groupId>
   <artifactId>test</artifactId>
-  <version>0.1.1</version> 
+  <version>0.1.2</version> 
 
   <parent>
     <groupId>io.micronaut</groupId>
@@ -184,6 +184,7 @@
         <configuration>
           <!-- Uncomment to enable incremental compilation -->
           <!-- <useIncrementalCompilation>false</useIncrementalCompilation> -->
+          
           <annotationProcessorPaths>
             <path>
               <groupId>io.micronaut</groupId>
@@ -200,6 +201,7 @@
             <arg>-Amicronaut.processing.group=ar.com.intrale.cloud</arg>
             <arg>-Amicronaut.processing.module=IntraleFunction</arg>
           </compilerArgs>
+          
         </configuration>
         <executions>
           <execution>
@@ -268,6 +270,19 @@
 				</execution -->
 			</executions>
 		</plugin>
+		<plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-eclipse-plugin</artifactId>
+	        <version>2.10</version>
+	        <configuration>
+	          <additionalProjectnatures>
+	            <projectnature>org.eclipse.m2e.core.maven2Nature</projectnature>
+	          </additionalProjectnatures>
+	          <additionalBuildcommands>
+	            <buildcommand>org.eclipse.m2e.core.maven2Builder</buildcommand>
+	          </additionalBuildcommands>
+	        </configuration>
+	      </plugin>
     </plugins>
   </build>
 

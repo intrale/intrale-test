@@ -1,6 +1,10 @@
 package ar.com.intrale.cloud;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -9,8 +13,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ar.com.intrale.cloud.config.ApplicationConfig;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.runtime.EmbeddedApplication;
@@ -19,37 +25,27 @@ public abstract class Test<PROV> {
 
 	public static final Long   DUMMY_ID = Long.valueOf(777);
 	public static final String DUMMY_VALUE = "DUMMY";
+	public static final String CHANGED_VALUE = "CHANGED";
 	public static final String DUMMY_EMAIL = "DUMMY@DUMMY.COM";
 	public static final String DUMMY_PASS = "123#abCD";
 	public static final String DUMMY_PASS_2 = "456#efGH";
 
-	private final Class<Request> providerType = (Class<Request>) ((ParameterizedType) getClass().getGenericSuperclass())
-			.getActualTypeArguments()[0];
+	private final Class providerType = (Class) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
 	@Inject
 	protected ApplicationContext applicationContext;
 
 	@Inject
 	protected EmbeddedApplication app;
+	
+	@Inject
+	protected ApplicationConfig config;
 
 	protected ObjectMapper mapper = new ObjectMapper();
 
-	protected static Lambda lambda;
+	protected Lambda lambda;
 
 	protected PROV provider;
-
-	/**
-	 * Instancia Lambda y setea el proveedor en caso de que corresponda
-	 */
-	public void lambdaInstantiation() {
-		if (lambda == null) {
-			BeanIntrospection<Lambda> beanIntrospection = BeanIntrospection.getIntrospection(Lambda.class);
-			lambda = beanIntrospection.instantiate();
-		}
-		if (provider != null) {
-			lambda.getFunction().setProvider(provider);
-		}
-	}
 
 	/**
 	 * Se ejecuta por unica vez previo a todos los test
@@ -65,6 +61,25 @@ public abstract class Test<PROV> {
 	}
 
 	public abstract void beforeEach();
+	
+	/**
+	 * Instancia Lambda y setea el proveedor en caso de que corresponda
+	 */
+	public void lambdaInstantiation() {
+ 		if (lambda == null) {
+			BeanIntrospection<Lambda> beanIntrospection = BeanIntrospection.getIntrospection(Lambda.class);
+			lambda = beanIntrospection.instantiate();
+
+			Collection<Function> functions = lambda.getApplicationContext().getBeansOfType(Function.class);
+			Iterator<Function> it = functions.iterator();
+			while (it.hasNext()) {
+				Function function = (Function) it.next();
+				function.setProvider(provider);
+			}
+			
+			lambda.getApplicationContext().registerSingleton(providerType, provider);
+		}
+	}
 
 	@AfterEach
 	public void finalizeTest() {
@@ -75,9 +90,15 @@ public abstract class Test<PROV> {
 
 	@AfterAll
 	public static void end() {
-		if (lambda != null) {
-			lambda.getApplicationContext().close();
-		}
+	}
+	
+	public APIGatewayProxyRequestEvent makeRequestEvent(Request request, String function) throws Exception{
+        APIGatewayProxyRequestEvent requestEvent = new APIGatewayProxyRequestEvent();
+        Map<String, String> headers = new HashMap<String, String>();
+        headers.put(Lambda.FUNCTION, function);
+        requestEvent.setHeaders(headers);
+        requestEvent.setBody(mapper.writeValueAsString(request));
+        return requestEvent;
 	}
 
 }

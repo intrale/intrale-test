@@ -1,6 +1,5 @@
 package ar.com.intrale.cloud;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,16 +20,14 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.runtime.EmbeddedApplication;
 
-public abstract class Test<PROV> {
+public abstract class Test {
 
 	public static final Long   DUMMY_ID = Long.valueOf(777);
 	public static final String DUMMY_VALUE = "DUMMY";
 	public static final String CHANGED_VALUE = "CHANGED";
-	public static final String DUMMY_EMAIL = "DUMMY@DUMMY.COM";
+	public static final String DUMMY_EMAIL = "leonel@larreta.com.ar";
 	public static final String DUMMY_PASS = "123#abCD";
 	public static final String DUMMY_PASS_2 = "456#efGH";
-
-	private final Class providerType = (Class) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
 	@Inject
 	protected ApplicationContext applicationContext;
@@ -44,8 +41,6 @@ public abstract class Test<PROV> {
 	protected ObjectMapper mapper = new ObjectMapper();
 
 	protected Lambda lambda;
-
-	protected PROV provider;
 
 	/**
 	 * Se ejecuta por unica vez previo a todos los test
@@ -74,10 +69,11 @@ public abstract class Test<PROV> {
 			Iterator<Function> it = functions.iterator();
 			while (it.hasNext()) {
 				Function function = (Function) it.next();
-				function.setProvider(provider);
+				function.setProvider(applicationContext.getBean(function.getProviderType()));
+				lambda.getApplicationContext().registerSingleton(function.getProviderType(), function.getProvider());
 			}
 			
-			lambda.getApplicationContext().registerSingleton(providerType, provider);
+			
 		}
 	}
 

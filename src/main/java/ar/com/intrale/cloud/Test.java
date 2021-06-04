@@ -91,7 +91,7 @@ public abstract class Test {
 	public APIGatewayProxyRequestEvent makeRequestEvent(Request request, String function) throws Exception{
         APIGatewayProxyRequestEvent requestEvent = new APIGatewayProxyRequestEvent();
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put(Lambda.FUNCTION, function);
+        headers.put(Lambda.HEADER_FUNCTION, function);
         requestEvent.setHeaders(headers);
         requestEvent.setBody(mapper.writeValueAsString(request));
         return requestEvent;

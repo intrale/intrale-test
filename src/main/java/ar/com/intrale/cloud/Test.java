@@ -25,7 +25,7 @@ public abstract class Test {
 	public static final Long   DUMMY_ID = Long.valueOf(777);
 	public static final String DUMMY_VALUE = "DUMMY";
 	public static final String CHANGED_VALUE = "CHANGED";
-	public static final String DUMMY_EMAIL = "leonel@larreta.com.ar";
+	public static final String DUMMY_EMAIL = "prueba@intrale.com.ar";
 	public static final String DUMMY_PASS = "123#abCD";
 	public static final String DUMMY_PASS_2 = "456#efGH";
 

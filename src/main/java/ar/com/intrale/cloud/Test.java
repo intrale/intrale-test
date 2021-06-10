@@ -20,6 +20,8 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.runtime.EmbeddedApplication;
 
+import ar.com.intrale.cloud.IntraleFunction;
+
 public abstract class Test {
 
 	public static final Long   DUMMY_ID = Long.valueOf(777);
@@ -65,10 +67,10 @@ public abstract class Test {
 			BeanIntrospection<Lambda> beanIntrospection = BeanIntrospection.getIntrospection(Lambda.class);
 			lambda = beanIntrospection.instantiate();
 
-			Collection<Function> functions = lambda.getApplicationContext().getBeansOfType(Function.class);
-			Iterator<Function> it = functions.iterator();
+			Collection<IntraleFunction> functions = lambda.getApplicationContext().getBeansOfType(IntraleFunction.class);
+			Iterator<IntraleFunction> it = functions.iterator();
 			while (it.hasNext()) {
-				Function function = (Function) it.next();
+				IntraleFunction function = (IntraleFunction) it.next();
 				function.setProvider(applicationContext.getBean(function.getProviderType()));
 				lambda.getApplicationContext().registerSingleton(function.getProviderType(), function.getProvider());
 			}
@@ -91,6 +93,7 @@ public abstract class Test {
 	public APIGatewayProxyRequestEvent makeRequestEvent(Request request, String function) throws Exception{
         APIGatewayProxyRequestEvent requestEvent = new APIGatewayProxyRequestEvent();
         Map<String, String> headers = new HashMap<String, String>();
+        headers.put(Lambda.HEADER_BUSINESS_NAME, DUMMY_VALUE);
         headers.put(Lambda.HEADER_FUNCTION, function);
         requestEvent.setHeaders(headers);
         requestEvent.setBody(mapper.writeValueAsString(request));

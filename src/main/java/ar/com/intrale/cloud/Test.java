@@ -11,18 +11,21 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ar.com.intrale.cloud.config.ApplicationConfig;
+import ar.com.intrale.cloud.exceptions.FunctionException;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.runtime.EmbeddedApplication;
 
-import ar.com.intrale.cloud.IntraleFunction;
-
 public abstract class Test {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(Test.class);
 
 	public static final Long   DUMMY_ID = Long.valueOf(777);
 	public static final String DUMMY_VALUE = "DUMMY";
@@ -53,8 +56,12 @@ public abstract class Test {
 
 	@BeforeEach
 	public void initializeTest() {
-		beforeEach();
-		lambdaInstantiation();
+		try {
+			beforeEach();
+			lambdaInstantiation();
+		} catch (Exception e) {
+			LOGGER.error(FunctionException.toString(e));
+		}
 	}
 
 	public abstract void beforeEach();
@@ -67,10 +74,11 @@ public abstract class Test {
 			BeanIntrospection<Lambda> beanIntrospection = BeanIntrospection.getIntrospection(Lambda.class);
 			lambda = beanIntrospection.instantiate();
 
-			Collection<IntraleFunction> functions = lambda.getApplicationContext().getBeansOfType(IntraleFunction.class);
-			Iterator<IntraleFunction> it = functions.iterator();
+			Collection<BaseFunction> functions = lambda.getApplicationContext().getBeansOfType(BaseFunction.class);
+			Iterator<BaseFunction> it = functions.iterator();
 			while (it.hasNext()) {
-				IntraleFunction function = (IntraleFunction) it.next();
+				BaseFunction function = (BaseFunction) it.next();
+
 				function.setProvider(applicationContext.getBean(function.getProviderType()));
 				lambda.getApplicationContext().registerSingleton(function.getProviderType(), function.getProvider());
 			}
@@ -93,8 +101,8 @@ public abstract class Test {
 	public APIGatewayProxyRequestEvent makeRequestEvent(Request request, String function) throws Exception{
         APIGatewayProxyRequestEvent requestEvent = new APIGatewayProxyRequestEvent();
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put(Lambda.HEADER_BUSINESS_NAME, DUMMY_VALUE);
-        headers.put(Lambda.HEADER_FUNCTION, function);
+        headers.put(FunctionBuilder.HEADER_BUSINESS_NAME, DUMMY_VALUE);
+        headers.put(FunctionBuilder.HEADER_FUNCTION, function);
         requestEvent.setHeaders(headers);
         requestEvent.setBody(mapper.writeValueAsString(request));
         return requestEvent;

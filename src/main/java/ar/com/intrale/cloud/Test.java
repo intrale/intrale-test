@@ -1,5 +1,6 @@
 package ar.com.intrale.cloud;
 
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -104,7 +105,7 @@ public abstract class Test {
         headers.put(FunctionBuilder.HEADER_BUSINESS_NAME, DUMMY_VALUE);
         headers.put(FunctionBuilder.HEADER_FUNCTION, function);
         requestEvent.setHeaders(headers);
-        requestEvent.setBody(mapper.writeValueAsString(request));
+        requestEvent.setBody(Base64.getEncoder().encodeToString(mapper.writeValueAsString(request).getBytes()));
         return requestEvent;
 	}
 

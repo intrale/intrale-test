@@ -20,14 +20,14 @@
     </repository>
     <repository>
 	  <id>github</id>
-	  <url>https://maven.pkg.github.com/llarreta/intrale</url>
+	  <url>https://maven.pkg.github.com/intrale/repo</url>
 	</repository>
   </repositories>
   <distributionManagement>
 	<repository>
 	  <id>github</id>
 	  <name>GitHub llarreta Apache Maven Packages</name>
-	  <url>https://maven.pkg.github.com/llarreta/intrale</url>
+	  <url>https://maven.pkg.github.com/intrale/repo</url>
 	</repository>
   </distributionManagement>
   

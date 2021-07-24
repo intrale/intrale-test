@@ -27,3 +27,11 @@ jobs:
         mkdir -p ~/.m2
         echo "<settings><servers><server><id>github</id><username>${MAVEN_SERVER_USERNAME}</username><password>${MAVEN_SERVER_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
         mvn deploy
+        mvn deploy
+    - uses: actions/delete-package-versions@v1
+      with:
+        owner: 'llarreta'
+        repo: 'intrale'
+        package-name: 'ar.com.intrale.cloud.Test'
+        num-old-versions-to-delete: 1
+        token: ${{ secrets.MAVEN_SERVER_PASSWORD }}

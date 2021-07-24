@@ -18,6 +18,7 @@ jobs:
           architecture: x64 # (x64 or x86) - defaults to x64
     - name: Deploy to Github Package Registry
       env:
+        VERSION: ${{ secrets.VERSION }}
         MAVEN_SERVER_USERNAME: ${{ secrets.MAVEN_SERVER_USERNAME }}
         MAVEN_SERVER_PASSWORD: ${{ secrets.MAVEN_SERVER_PASSWORD }}
       run: |

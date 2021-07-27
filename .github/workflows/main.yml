@@ -12,22 +12,22 @@ jobs:
 
     steps:
     - name: Call intrale-commons
-      if: (github.event.action != 'ping') && (github.event.action != 'pong') 
+      if: (github.event.action != 'ping_parent') && (github.event.action != 'pong_parent') 
       run: |
          curl -X POST https://api.github.com/repos/intrale/intrale-commons/dispatches \
           -H 'Accept: application/vnd.github.everest-preview+json' \
           -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
-          --data '{"event_type": "ping", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'        
+          --data '{"event_type": "ping_child", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'        
     - uses: actions/checkout@v1
-      if: (github.event.action == 'ping') || (github.event.action == 'pong')     
+      if: github.event.action == 'pong_parent'      
     - uses: actions/setup-java@v1
-      if: (github.event.action == 'ping') || (github.event.action == 'pong') 
+      if: github.event.action == 'pong_parent'  
       with:
           java-version: '11' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
     - name: Deploy to Github Package Registry
-      if: (github.event.action == 'ping') || (github.event.action == 'pong') 
+      if: github.event.action == 'pong_parent' 
       env:
         VERSION: ${{ secrets.VERSION }}
         MAVEN_SERVER_USERNAME: ${{ secrets.MAVEN_SERVER_USERNAME }}
@@ -39,7 +39,7 @@ jobs:
         echo "<settings><servers><server><id>github</id><username>${MAVEN_SERVER_USERNAME}</username><password>${MAVEN_SERVER_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
         mvn deploy
     - uses: actions/delete-package-versions@v1
-      if: (github.event.action == 'ping') || (github.event.action == 'pong') 
+      if: github.event.action == 'pong_parent' 
       with:
         owner: 'llarreta'
         repo: 'intrale'

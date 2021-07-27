@@ -53,3 +53,10 @@ jobs:
           -H 'Accept: application/vnd.github.everest-preview+json' \
           -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
           --data '{"event_type": "ping_parent", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'    
+    - name: Call intrale-products
+      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')
+      run: |
+         curl -X POST https://api.github.com/repos/intrale/intrale-products/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
+          --data '{"event_type": "ping_parent", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'    

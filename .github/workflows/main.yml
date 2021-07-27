@@ -3,6 +3,7 @@ name: Java CI
 on:
   push:
     branches: [ main ]
+  repository_dispatch: 
 
 jobs:
   build: 
@@ -10,13 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Call intrale-commons
+      if: (github.event.action != 'ping') && (github.event.action != 'pong') 
+      run: |
+         curl -X POST https://api.github.com/repos/intrale/intrale-commons/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
+          --data '{"event_type": "ping", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'        
     - uses: actions/checkout@v1
+      if: (github.event.action == 'ping') || (github.event.action == 'pong')     
     - uses: actions/setup-java@v1
+      if: (github.event.action == 'ping') || (github.event.action == 'pong') 
       with:
           java-version: '11' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
     - name: Deploy to Github Package Registry
+      if: (github.event.action == 'ping') || (github.event.action == 'pong') 
       env:
         VERSION: ${{ secrets.VERSION }}
         MAVEN_SERVER_USERNAME: ${{ secrets.MAVEN_SERVER_USERNAME }}
@@ -28,6 +39,7 @@ jobs:
         echo "<settings><servers><server><id>github</id><username>${MAVEN_SERVER_USERNAME}</username><password>${MAVEN_SERVER_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
         mvn deploy
     - uses: actions/delete-package-versions@v1
+      if: (github.event.action == 'ping') || (github.event.action == 'pong') 
       with:
         owner: 'llarreta'
         repo: 'intrale'

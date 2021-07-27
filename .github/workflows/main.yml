@@ -1,4 +1,4 @@
-name: Java CI
+name: CI intrale-test
 
 on:
   push:
@@ -46,3 +46,17 @@ jobs:
         package-name: 'ar.com.intrale.cloud.Test'
         num-old-versions-to-delete: 1
         token: ${{ secrets.MAVEN_SERVER_PASSWORD }}
+    - name: Call intrale-users
+      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')
+      run: |
+         curl -X POST https://api.github.com/repos/intrale/intrale-users/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
+          --data '{"event_type": "ping_parent", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
+    - name: Response to intrale-users
+      if: github.event.action == 'ping_child'
+      run: |
+         curl -X POST https://api.github.com/repos/intrale/intrale-users/dispatches \
+          -H 'Accept: application/vnd.github.everest-preview+json' \
+          -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
+          --data '{"event_type": "pong_parent", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'      

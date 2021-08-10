@@ -1,5 +1,6 @@
 package ar.com.intrale.cloud;
 
+import java.io.IOException;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
@@ -107,6 +108,14 @@ public abstract class Test {
         requestEvent.setHeaders(headers);
         requestEvent.setBody(Base64.getEncoder().encodeToString(mapper.writeValueAsString(request).getBytes()));
         return requestEvent;
+	}
+	
+	public <T> T readValue(byte[] content, Class<T> valueType) throws IOException {
+		return mapper.readValue(content, valueType);
+	}
+	
+	public <T> T readEncodedValue(String content, Class<T> valueType) throws IOException {
+		return readValue(Base64.getDecoder().decode(content), valueType);
 	}
 
 }

@@ -100,7 +100,7 @@ public abstract class Test {
 	public static void end() {
 	}
 	
-	public APIGatewayProxyRequestEvent makeRequestEvent(Request request, String function) throws Exception{
+	public APIGatewayProxyRequestEvent makeRequestEvent(RequestRoot request, String function) throws Exception{
         APIGatewayProxyRequestEvent requestEvent = new APIGatewayProxyRequestEvent();
         Map<String, String> headers = new HashMap<String, String>();
         headers.put(FunctionBuilder.HEADER_BUSINESS_NAME, DUMMY_VALUE);

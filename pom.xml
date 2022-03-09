@@ -55,7 +55,7 @@
 		<scope>compile</scope>
 	</dependency>
 	<dependency>
-		<groupId>ar.com.intrale.cloud</groupId>
+		<groupId>ar.com.intrale</groupId>
 		<artifactId>commons</artifactId>
 		<version>DEV</version>
 		<scope>provided</scope>
@@ -123,7 +123,7 @@
             </path>
           </annotationProcessorPaths>
           <compilerArgs>
-            <arg>-Amicronaut.processing.group=ar.com.intrale.cloud</arg>
+            <arg>-Amicronaut.processing.group=ar.com.intrale</arg>
             <arg>-Amicronaut.processing.module=IntraleFunction</arg>
           </compilerArgs>
           

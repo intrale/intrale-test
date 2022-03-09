@@ -5,7 +5,7 @@
   <artifactId>test</artifactId>
 
   <parent>
-    <groupId>ar.com.intrale.cloud</groupId>
+    <groupId>ar.com.intrale</groupId>
     <artifactId>parent</artifactId>
     <version>DEV</version>
   </parent>

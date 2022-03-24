@@ -27,6 +27,7 @@ import ar.com.intrale.config.ApplicationConfig;
 import ar.com.intrale.exceptions.FunctionException;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.core.beans.BeanIntrospection;
+import io.micronaut.core.util.StringUtils;
 import io.micronaut.runtime.EmbeddedApplication;
 
 public abstract class Test {
@@ -119,7 +120,9 @@ public abstract class Test {
 	}
 	
 	public <T> T readEncodedValue(String content, Class<T> valueType) throws IOException {
-		return readValue(Base64.getDecoder().decode(content), valueType);
+		if (StringUtils.isNotEmpty(content)) {
+			return readValue(Base64.getDecoder().decode(content), valueType);
+		}
+		return null;
 	}
-
 }

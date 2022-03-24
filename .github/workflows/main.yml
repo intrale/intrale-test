@@ -43,7 +43,7 @@ jobs:
       with:
         owner: 'llarreta'
         repo: 'intrale'
-        package-name: 'ar.com.intrale.cloud.Test'
+        package-name: 'ar.com.intrale.Test'
         num-old-versions-to-delete: 1
         token: ${{ secrets.MAVEN_SERVER_PASSWORD }}
     - name: Call intrale-users

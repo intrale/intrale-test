@@ -3,11 +3,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>test</artifactId>
+  <version>DEV_TEST</version>
 
   <parent>
     <groupId>ar.com.intrale</groupId>
     <artifactId>parent</artifactId>
-    <version>DEV</version>
+    <version>DEV_PARENT</version>
   </parent>
 
   <properties>
@@ -57,7 +58,7 @@
 	<dependency>
 		<groupId>ar.com.intrale</groupId>
 		<artifactId>commons</artifactId>
-		<version>DEV</version>
+		<version>DEV_COMMONS</version>
 		<scope>provided</scope>
 	</dependency>
 

@@ -3,67 +3,106 @@ name: CI intrale-test
 on:
   push:
     branches: [ main ]
-  repository_dispatch: 
- 
+  repository_dispatch:
 jobs:
   build: 
 
     runs-on: ubuntu-latest
 
     steps:
-    - name: Call intrale-commons
-      if: (github.event.action != 'ping_parent') && (github.event.action != 'pong_parent') 
-      run: |
-         curl -X POST https://api.github.com/repos/intrale/intrale-commons/dispatches \
-          -H 'Accept: application/vnd.github.everest-preview+json' \
-          -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
-          --data '{"event_type": "ping_child", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'        
-    - uses: actions/checkout@v1
-      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')      
-    - uses: actions/setup-java@v1
-      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')  
+    - name: Download source code
+      uses: actions/checkout@v3
+    - name: JDK Setup
+      uses: actions/setup-java@v2
       with:
           java-version: '11' # The JDK version to make available on the path.
+          distribution: 'temurin'
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
-    - name: Deploy to Github Package Registry
-      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')
+    - name: Version definition
       env:
-        VERSION: ${{ secrets.VERSION }}
+        REL_TEST: ${{ secrets.REL_TEST }}
+        EVO_TEST: ${{ secrets.EVO_TEST }}
+        REV_TEST: ${{ secrets.REV_TEST }}
+      run: |
+        echo "REV_TEST=$(($REV_TEST+1))" >> $GITHUB_ENV
+        if [[ $REV_TEST > 21 ]]; then
+          echo "REV_TEST=0" >> $GITHUB_ENV 
+          echo "EVO_TEST=$(($EVO_TEST+1))" >> $GITHUB_ENV
+        fi
+        if [[ $EVO_TEST > 11 ]]; then
+          echo "EVO_TEST=0" >> $GITHUB_ENV 
+          echo "REL_TEST=$(($REL_TEST+1))" >> $GITHUB_ENV
+        fi
+        echo "REL_TEST=$(($REL_TEST))" >> $GITHUB_ENV
+        echo "EVO_TEST=$(($EVO_TEST))" >> $GITHUB_ENV
+        echo "VER_TEST=${REL_TEST}.${EVO_TEST}.${REV_TEST}" >> $GITHUB_ENV
+        echo "VER_TEST_TEXT=${REL_TEST}_${EVO_TEST}_${REV_TEST}" >> $GITHUB_ENV
+    - name: Save REL_TEST
+      uses: hmanzur/actions-set-secret@v2.0.0
+      with:
+        name: 'REL_TEST'
+        value: ${{ env.REL_TEST }}
+        repository: 'intrale'
+        token: ${{ secrets.MAVEN_SERVER_PASSWORD }}
+        org: true
+        visibility: 'all'
+    - name: Save EVO_TEST
+      uses: hmanzur/actions-set-secret@v2.0.0
+      with:
+        name: 'EVO_TEST'
+        value: ${{ env.EVO_TEST }}
+        repository: 'intrale'
+        token: ${{ secrets.MAVEN_SERVER_PASSWORD }}
+        org: true
+        visibility: 'all'
+    - name: Save REV_TEST
+      uses: hmanzur/actions-set-secret@v2.0.0
+      with:
+        name: 'REV_TEST'
+        value: ${{ env.REV_TEST }}
+        repository: 'intrale'
+        token: ${{ secrets.MAVEN_SERVER_PASSWORD }}
+        org: true
+        visibility: 'all'
+    - name: Save VER_TEST
+      uses: hmanzur/actions-set-secret@v2.0.0
+      with:
+        name: 'VER_TEST'
+        value: ${{ env.VER_TEST }}
+        repository: 'intrale'
+        token: ${{ secrets.MAVEN_SERVER_PASSWORD }}
+        org: true   
+        visibility: 'all'        
+    - name: Deploy to Github Package Registry
+      env:
+        VER_PARENT: ${{ secrets.VER_PARENT }}
+        DEV_COMMONS: ${{ secrets.DEV_COMMONS }}
         MAVEN_SERVER_USERNAME: ${{ secrets.MAVEN_SERVER_USERNAME }}
         MAVEN_SERVER_PASSWORD: ${{ secrets.MAVEN_SERVER_PASSWORD }}
       run: |
-        sed -i "s/DEV/$VERSION/gi" pom.xml
-        cat pom.xml
+        sed -i "s/DEV_PARENT/${VER_PARENT}/gi" pom.xml
+        sed -i "s/DEV_COMMONS/${VER_COMMONS}/gi" pom.xml
+        sed -i "s/DEV_TEST/${VER_TEST}/gi" pom.xml
         mkdir -p ~/.m2
         echo "<settings><servers><server><id>github</id><username>${MAVEN_SERVER_USERNAME}</username><password>${MAVEN_SERVER_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
-        mvn deploy
-    - uses: actions/delete-package-versions@v3
-      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')
+        mvn -e -X deploy
+    - name: Tag Branch  
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: "VER_${{ env.VER_COMMONS_TEXT }}"
+        message: "VER_${{ env.VER_COMMONS_TEXT }}"
+    - name: Delete old packages
+      uses: actions/delete-package-versions@v3
       with:
         owner: 'llarreta'
         repo: 'intrale'
-        package-name: 'ar.com.intrale.Test'
-        num-old-versions-to-delete: 1
-        token: ${{ secrets.MAVEN_SERVER_PASSWORD }}
-    - name: Call intrale-users
-      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')
+        package-name: 'ar.com.intrale.test'
+        min-versions-to-keep: 3
+        token: ${{ secrets.MAVEN_SERVER_PASSWORD }}              
+    - name: Call intrale-test recompile with new version of test
       run: |
-         curl -X POST https://api.github.com/repos/intrale/intrale-users/dispatches \
+         curl -X POST https://api.github.com/repos/intrale/intrale-test/dispatches \
           -H 'Accept: application/vnd.github.everest-preview+json' \
           -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
-          --data '{"event_type": "ping_parent", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'    
-    - name: Call intrale-products
-      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')
-      run: |
-         curl -X POST https://api.github.com/repos/intrale/intrale-products/dispatches \
-          -H 'Accept: application/vnd.github.everest-preview+json' \
-          -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
-          --data '{"event_type": "ping_parent", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'
-    - name: Call intrale-files
-      if: (github.event.action == 'ping_parent') || (github.event.action == 'pong_parent')
-      run: |
-         curl -X POST https://api.github.com/repos/intrale/intrale-files/dispatches \
-          -H 'Accept: application/vnd.github.everest-preview+json' \
-          -u ${{ secrets.MAVEN_SERVER_PASSWORD }} \
-          --data '{"event_type": "ping_parent", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'           
+          --data '{"event_type": "parent_new_version", "client_payload": { "repository": "'"$GITHUB_REPOSITORY"'" }}'

@@ -77,7 +77,7 @@ jobs:
     - name: Deploy to Github Package Registry
       env:
         VER_PARENT: ${{ secrets.VER_PARENT }}
-        DEV_COMMONS: ${{ secrets.DEV_COMMONS }}
+        VER_COMMONS: ${{ secrets.VER_COMMONS }}
         MAVEN_SERVER_USERNAME: ${{ secrets.MAVEN_SERVER_USERNAME }}
         MAVEN_SERVER_PASSWORD: ${{ secrets.MAVEN_SERVER_PASSWORD }}
       run: |

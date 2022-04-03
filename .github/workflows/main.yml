@@ -90,8 +90,8 @@ jobs:
     - name: Tag Branch  
       uses: rickstaa/action-create-tag@v1
       with:
-        tag: "VER_${{ env.VER_COMMONS_TEXT }}"
-        message: "VER_${{ env.VER_COMMONS_TEXT }}"
+        tag: "VER_${{ env.VER_TEST_TEXT }}"
+        message: "VER_${{ env.VER_TEST_TEXT }}"
     - name: Delete old packages
       uses: actions/delete-package-versions@v3
       with:

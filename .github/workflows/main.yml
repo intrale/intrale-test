@@ -85,6 +85,7 @@ jobs:
         sed -i "s/PARENT_VERSION/${PARENT_VERSION}/gi" pom.xml
         sed -i "s/CORE_VERSION/${CORE_VERSION}/gi" pom.xml
         sed -i "s/COMMONS_VERSION/${COMMONS_VERSION}/gi" pom.xml
+        sed -i "s/TEST_VERSION/${VERSION_TARGET}/gi" pom.xml
         mkdir -p ~/.m2
         echo "<settings><servers><server><id>github</id><username>${MAVEN_SERVER_USERNAME}</username><password>${MAVEN_SERVER_PASSWORD}</password></server></servers></settings>" > ~/.m2/settings.xml
         mvn -e -X deploy

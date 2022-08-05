@@ -5,7 +5,9 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -17,12 +19,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 
 import ar.com.intrale.config.ApplicationConfig;
 import ar.com.intrale.exceptions.FunctionException;
 import ar.com.intrale.messages.RequestRoot;
 import io.micronaut.context.ApplicationContext;
+import io.micronaut.context.exceptions.NonUniqueBeanException;
 import io.micronaut.core.beans.BeanIntrospection;
 import io.micronaut.core.util.StringUtils;
 import io.micronaut.runtime.EmbeddedApplication;
@@ -41,16 +46,22 @@ public abstract class Test {
 	@Inject
 	protected ApplicationContext applicationContext;
 
-	@Inject
-	protected EmbeddedApplication app;
+	/*@Inject
+	protected EmbeddedApplication app;*/
 	
 	@Inject
 	protected ApplicationConfig config;
 
 	protected ObjectMapper mapper = new ObjectMapper();
+	
+	protected Faker faker = resetFaker();
 
 	protected Lambda lambda;
-
+	
+	protected Faker resetFaker() {
+		return new Faker(new Locale("es"));
+	}
+	
 	/**
 	 * Se ejecuta por unica vez previo a todos los test
 	 */
@@ -75,19 +86,41 @@ public abstract class Test {
 	 */
 	public void lambdaInstantiation() {
  		if (lambda == null) {
+			lambdaBuild();
+		}
+	}
+
+	protected void lambdaBuild() {
+		LOGGER.info("Test lambdaBuild");
+		
+		try {
 			BeanIntrospection<Lambda> beanIntrospection = BeanIntrospection.getIntrospection(Lambda.class);
 			lambda = beanIntrospection.instantiate();
+		} catch (Exception e) {
+			LOGGER.error("BeanIntrospection error:" + FunctionException.toString(e));
+		}
+		
+		LOGGER.info("Seteando providers");
 
-			Collection<BaseFunction> functions = lambda.getApplicationContext().getBeansOfType(BaseFunction.class);
-			Iterator<BaseFunction> it = functions.iterator();
-			while (it.hasNext()) {
-				BaseFunction function = (BaseFunction) it.next();
+		Collection<BaseFunction> functions = lambda.getApplicationContext().getBeansOfType(BaseFunction.class);
+		Iterator<BaseFunction> it = functions.iterator();
+		while (it.hasNext()) {
+			BaseFunction function = (BaseFunction) it.next();
 
+			try {
 				function.setProvider(applicationContext.getBean(function.getProviderType()));
-				lambda.getApplicationContext().registerSingleton(function.getProviderType(), function.getProvider());
+			} catch (NonUniqueBeanException e) {
+				Collection beans= applicationContext.getBeansOfType(function.getProviderType());
+				Integer index = 0;
+				beans.stream().forEach(new Consumer<>() {
+					@Override
+					public void accept(Object obj) {
+						LOGGER.error("Bean :" + obj);				
+					}
+				});
+				LOGGER.error(FunctionException.toString(e));							
 			}
-			
-			
+			lambda.getApplicationContext().registerSingleton(function.getProviderType(), function.getProvider());
 		}
 	}
 
@@ -103,9 +136,15 @@ public abstract class Test {
 	}
 	
 	public APIGatewayProxyRequestEvent makeRequestEvent(RequestRoot request, String function) throws Exception{
-        APIGatewayProxyRequestEvent requestEvent = new APIGatewayProxyRequestEvent();
+		String businessName = DUMMY_VALUE;
+        return makeRequestEvent(request, function, businessName);
+	}
+
+	public APIGatewayProxyRequestEvent makeRequestEvent(RequestRoot request, String function, String businessName)
+			throws JsonProcessingException {
+		APIGatewayProxyRequestEvent requestEvent = new APIGatewayProxyRequestEvent();
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put(FunctionBuilder.HEADER_BUSINESS_NAME, DUMMY_VALUE);
+        headers.put(FunctionBuilder.HEADER_BUSINESS_NAME, businessName);
         headers.put(FunctionBuilder.HEADER_FUNCTION, function);
         requestEvent.setHeaders(headers);
         requestEvent.setBody(Base64.getEncoder().encodeToString(mapper.writeValueAsString(request).getBytes()));

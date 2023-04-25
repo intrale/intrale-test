@@ -23,7 +23,7 @@ jobs:
       run: |
          echo "PARENT_VERSION=0.1.27" >> $GITHUB_ENV
          echo "CORE_VERSION=0.1.4" >> $GITHUB_ENV
-         echo "COMMONS_VERSION=0.1.7" >> $GITHUB_ENV
+         echo "COMMONS_VERSION=0.1.8" >> $GITHUB_ENV
          echo "VERSION=0" >> $GITHUB_ENV
          echo "FEATURE=1" >> $GITHUB_ENV
     - name: Get Compile Number
